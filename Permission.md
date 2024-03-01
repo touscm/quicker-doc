@@ -119,6 +119,220 @@ public class SysUserController extends BaseController<SysUser, SysUserModel, Sys
 ```
 该示例定义`/api/sysUser/add`接口的权限为组织类型为`System`并且配置操作权限为`sys:user:add`的登陆用户访问
 
+## 权限服务
+
+接口动态权限配置需要通过`IPermissionService`接口完成.<br>
+框架提供了`IPermissionService`接口的默认实现`BasePermissionService`, 会保存角色信息, 权限信息及角色绑定, 权限绑定到缓存, 然后在进行接口权限检查时从缓存查询<br>
+也可以自己实现`IPermissionService`接口或者继承`BasePermissionService`类, 并重写`getUserPermissions()`方法
+
+### 默认权限配置
+
+使用默认权限配置, 需要在相关控制器类或接口方法添加`ActionHook`注解, 在相关实体类或字段添加`ActionHookEntry`注解
+
+#### 角色信息配置
+
+```java
+@RestController
+@RequestMapping("/api/sysRole")
+@Permission(route = ADD, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = ADD, category = ActionHook.Category.AddRole)
+@Permission(route = EDIT, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = EDIT, category = ActionHook.Category.AddRole)
+@Permission(route = ACTIVE, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = ACTIVE, category = ActionHook.Category.AddRole)
+@Permission(route = DELETE, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = DELETE, category = ActionHook.Category.RemoveRole)
+public class SysRoleController extends BaseController<SysRole, SysRoleModel, SysRoleViewModel, SysRoleService> {
+}
+
+@Entity(name = "sys_role")
+@ActionHookEntry(category = ActionHookEntry.Category.Group, value = TARGET_TYPE_SYS)
+@ActionHookEntry(category = ActionHookEntry.Category.RoleId, field = "id")
+public class SysRole extends GenericEntity {
+    @ActionHookEntry(category = ActionHookEntry.Category.RoleType)
+    private Integer type;
+    @ActionHookEntry(category = ActionHookEntry.Category.RoleName)
+    private String name;
+}
+```
+该示例表示在访问`/api/sysRole/add`, `/api/sysRole/edit`和`/api/sysRole/active`时在数据处理完成后会缓存角色信息, 角色信息从实体`SysRole`取得, `SysRole.id`为角色ID, `SysRole.type`为角色类型, `SysRole.name`为角色名称<br>
+在访问`/api/sysRole/delete`接口时, 删除处理完成后删除角色缓存
+
+#### 权限信息配置
+
+```java
+@RestController
+@RequestMapping("/api/sysMenu")
+@Permission(route = ADD, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = ADD, category = ActionHook.Category.AddPermission)
+@Permission(route = EDIT, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = EDIT, category = ActionHook.Category.AddPermission)
+@Permission(route = ACTIVE, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = ACTIVE, category = ActionHook.Category.AddPermission)
+@Permission(route = DELETE, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = DELETE, category = ActionHook.Category.RemovePermission)
+@Permission(route = DISABLE, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = DISABLE, category = ActionHook.Category.RemovePermission)
+public class SysMenuController extends BaseController<SysMenu, SysMenuModel, SysMenuViewModel, SysMenuService> {
+}
+
+@Entity(name = "sys_menu")
+@ActionHookEntry(category = ActionHookEntry.Category.Group, value = TARGET_TYPE_SYS)
+@ActionHookEntry(category = ActionHookEntry.Category.PermissionId, field = "id")
+public class SysMenu extends GenericEntity {
+    @ActionHookEntry(category = ActionHookEntry.Category.PermissionName)
+    private String name;
+    @ActionHookEntry(category = ActionHookEntry.Category.PermissionActions, value = ";")
+    private String permissions;
+}
+```
+该示例表示在访问`/api/sysMenu/add`, `/api/sysMenu/edit`和`/api/sysMenu/active`时在数据处理完成后会缓存权限信息, 权限信息从实体类`SysMenu`取得, `SysMenu.id`字段值为权限ID, `SysMenu.name`字段值为权限名称, `SysMenu.permissions`值经过分隔符";"分割后的列表为权限操作列表<br>
+在访问`/api/sysMenu/delete`和`/api/sysMenu/disable`接口时, 删除处理完成后删除角色缓存
+
+#### 角色绑定配置
+
+```java
+@RestController
+@RequestMapping("/api/sysUserRole")
+@Permission(route = ADD, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = ADD, category = ActionHook.Category.BindingRole)
+@Permission(route = REMOVE, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = REMOVE, category = ActionHook.Category.ClearRoleBinding)
+public class SysUserRoleController extends BaseController<SysUserRole, SysUserRoleModel, SysUserRoleViewModel, SysUserRoleService> {
+}
+
+@Entity(name = "sys_user_role")
+@ActionHookEntry(category = ActionHookEntry.Category.Group, value = TARGET_TYPE_SYS)
+public class SysUserRole extends GenericEntity {
+    @ActionHookEntry(category = ActionHookEntry.Category.UserId)
+    private String userId;
+    @ActionHookEntry(category = ActionHookEntry.Category.RoleId)
+    private String roleId;
+}
+```
+该示例表示在访问`/api/sysUserRole/add`接口完成后会缓存用户角色绑定信息, 绑定信息从实体类`SysUserRole`取得, `SysUserRole.userId`字段值为绑定关系的用户ID, `SysUserRole.roleId`字段值为绑定关系的角色ID<br>
+在访问使用DELETE协议访问`/api/sysUserRole/${id}`接口时, 删除处理完成后删除用户角色绑定缓存
+
+#### 权限绑定配置
+
+```java
+@RestController
+@RequestMapping("/api/sysRoleMenu")
+@Permission(route = ADD, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = ADD, category = ActionHook.Category.BindingPermission)
+@Permission(route = REMOVE, groupTypes = {TARGET_TYPE_SYS})
+@ActionHook(route = REMOVE, category = ActionHook.Category.ClearPermissionBinding)
+public class SysRoleMenuController extends BaseController<SysRoleMenu, SysRoleMenuModel, SysRoleMenuViewModel, SysRoleMenuService> {
+}
+
+@Entity(name = "sys_role_menu")
+@ActionHookEntry(category = ActionHookEntry.Category.Group, value = TARGET_TYPE_SYS)
+public class SysRoleMenu extends GenericEntity {
+    @ActionHookEntry(category = ActionHookEntry.Category.RoleId)
+    private String roleId;
+    @ActionHookEntry(category = ActionHookEntry.Category.PermissionId)
+    private String menuId;
+}
+```
+该示例表示在访问`/api/sysRoleMenu/add`接口完成后会缓存角色权限绑定信息, 绑定信息从实体类`SysRoleMenu`取得, `SysRoleMenu.roleId`字段值为绑定关系的角色ID, `SysRoleMenu.menuId`字段值为绑定关系的权限ID<br>
+在访问使用DELETE协议访问`/api/sysRoleMenu/${id}`接口时, 删除处理完成后删除角色权限绑定缓存
+
+### 自定义操作权限配置
+
+自定义操作权限配置可以重写`IPermissionService.getUserPermissions()`方法
+
+```java
+@Primary
+@Service
+public class PermissionService extends BasePermissionService {
+    @Resource
+    private SysMenuDao sysMenu;
+    @Resource
+    private SysUserRoleDao sysUserRole;
+    @Resource
+    private SysRoleMenuDao sysRoleMenu;
+    @Resource
+    private SpMenuDao spMenu;
+    @Resource
+    private SpUserRoleDao spUserRole;
+    @Resource
+    private SpRoleMenuDao spRoleMenu;
+    @Resource
+    private CompanyMenuDao companyMenu;
+    @Resource
+    private CompanyUserRoleDao companyUserRole;
+    @Resource
+    private CompanyRoleMenuDao companyRoleMenu;
+
+    @Override
+    public List<PermissionInfo> getUserPermissions(@NotNull UserInfo userInfo) {
+        return ((Optional<GroupInfo>) userInfo.getCurrentGroup()).flatMap(groupInfo -> {
+            return GroupType.parseOptional(groupInfo.type()).flatMap(groupType -> {
+                switch (groupType) {
+                    case System:
+                        return Optional.of(getSysPermissions(groupInfo, userInfo));
+                    case SP:
+                        return Optional.of(getSpPermissions(groupInfo, userInfo));
+                    case Company:
+                        return Optional.of(getCompanyPermissions(groupInfo, userInfo));
+                    default:
+                        return Optional.empty();
+                }
+            });
+        }).orElse(Collections.emptyList());
+    }
+
+    private List<PermissionInfo> getSysPermissions(GroupInfo groupInfo, UserInfo userInfo) {
+        var permissions = new ArrayList<PermissionInfo>();
+        var roleIds = sysUserRole.queryList(new Query<>(SysUserRole::getUserId, userInfo.getId()).select(SysUserRole::getRoleId)).stream().map(SysUserRole::getRoleId).collect(toList());
+        roleIds.stream().map(roleId -> sysRoleMenu.queryList(new Query<>(SysRoleMenu::getRoleId, roleId).select(SysRoleMenu::getMenuId)).stream().map(SysRoleMenu::getMenuId).collect(toList())).forEach(menuIds -> {
+            menuIds.forEach(menuId -> sysMenu.querySingle(new Query<>(SysMenu::getId, menuId).and(SysMenu::getStatus, GenericStatus.Enable.code()).and(SysMenu::getDeleteStatus, false)).ifPresent(menu -> {
+                if (StringUtils.isNotEmpty(menu.getPermissions())) {
+                    String[] perms;
+                    if (CollectionUtils.isNotEmpty(perms = menu.getPermissions().split(";"))) {
+                        permissions.add(new PermissionInfo(menu.getId(), menu.getName(), menu.getUrl(), Arrays.asList(perms)));
+                    }
+                }
+            }));
+        });
+        return permissions;
+    }
+
+    private List<PermissionInfo> getSpPermissions(GroupInfo groupInfo, UserInfo userInfo) {
+        var permissions = new ArrayList<PermissionInfo>();
+        var roleIds = spUserRole.queryList(new Query<>(SpUserRole::getUserId, userInfo.getId()).select(SpUserRole::getRoleId)).stream().map(SpUserRole::getRoleId).collect(toList());
+        roleIds.stream().map(roleId -> spRoleMenu.queryList(new Query<>(SpRoleMenu::getRoleId, roleId).select(SpRoleMenu::getMenuId)).stream().map(SpRoleMenu::getMenuId).collect(toList())).forEach(menuIds -> {
+            menuIds.forEach(menuId -> spMenu.querySingle(new Query<>(SpMenu::getId, menuId).and(SpMenu::getStatus, GenericStatus.Enable.code()).and(SpMenu::getDeleteStatus, false)).ifPresent(menu -> {
+                if (StringUtils.isNotEmpty(menu.getPermissions())) {
+                    String[] perms;
+                    if (CollectionUtils.isNotEmpty(perms = menu.getPermissions().split(";"))) {
+                        permissions.add(new PermissionInfo(menu.getId(), menu.getName(), menu.getUrl(), Arrays.asList(perms)));
+                    }
+                }
+            }));
+        });
+        return permissions;
+    }
+
+    private List<PermissionInfo> getCompanyPermissions(GroupInfo groupInfo, UserInfo userInfo) {
+        var permissions = new ArrayList<PermissionInfo>();
+        var roleIds = companyUserRole.queryList(new Query<>(CompanyUserRole::getUserId, userInfo.getId()).select(CompanyUserRole::getRoleId)).stream().map(CompanyUserRole::getRoleId).collect(toList());
+        roleIds.stream().map(roleId -> companyRoleMenu.queryList(new Query<>(CompanyRoleMenu::getRoleId, roleId).select(CompanyRoleMenu::getMenuId)).stream().map(CompanyRoleMenu::getMenuId).collect(toList())).forEach(menuIds -> {
+            menuIds.forEach(menuId -> companyMenu.querySingle(new Query<>(CompanyMenu::getId, menuId).and(CompanyMenu::getStatus, GenericStatus.Enable.code()).and(CompanyMenu::getDeleteStatus, false)).ifPresent(menu -> {
+                if (StringUtils.isNotEmpty(menu.getPermissions())) {
+                    String[] perms;
+                    if (CollectionUtils.isNotEmpty(perms = menu.getPermissions().split(";"))) {
+                        permissions.add(new PermissionInfo(menu.getId(), menu.getName(), menu.getUrl(), Arrays.asList(perms)));
+                    }
+                }
+            }));
+        });
+        return permissions;
+    }
+}
+```
+该示例表示根据登陆用户当前组织类型分别取得平台, 服务商, 企业各自分配至当前用户的操作权限, 查找路径为 用户 -> 用户角色绑定 -> 角色 -> 角色权限绑定 -> 权限 -> 权限分配的操作权限
+
 ## 数据权限
 
 数据权限用于限定数据所属, 数据权限分为查询权限和插入权限, 数据权限配置可分为全局配置和实体单独配置
@@ -236,6 +450,3 @@ public class CustomPermissionService extends BasePermissionService {
 }
 ```
 该示例表示在查询`Carrie`实体时会附加`spId=${user.groupId}`, `companyId=${user.id}`和`spName=${CustomPermissionService.getPermissionCondition()}`
-
-## 动态权限
-
