@@ -21,17 +21,20 @@ public class ReqCondition {
     private List<ReqCondition> conditions;
 }
 ```
-`query`用于指定子查询列表的逻辑关系, 默认为`AND`关系, `type`用于定义查询单元类型, `value`指定查询单元值, `conditions`定义子查询列表, 通过指定`conditions`的层次结构可实现简单查询和复杂查询
+`query`用于指定子查询列表的逻辑关系, 值分为`AND`和`OR`, 默认为`AND`关系<br>
+`type`用于定义查询单元类型<br>
+`value`指定查询单元值<br>
+`conditions`定义子查询列表, `query`未定义或者为`AND`时查询单元间的关系为逻辑与的关系吗, 否则为逻辑或
 
 ## 查询单元类型
 
 `ReqCondition.type`作用有两个
-> * [定义查询单元逻辑关系](#QueryRelation "查询单元逻辑关系说明")
+> * [定义查询单元比较关系](#QueryRelation "查询单元比较关系说明")
 > * [定义查询字段或者查询类型](#查询字段或者查询类型说明 "查询字段或者查询类型说明")
 
 ### QueryRelation
 
-查询单元逻辑关系由枚举`com.touscm.quicker.data.QueryRelation`定义
+查询单元比较关系由枚举`com.touscm.quicker.data.QueryRelation`定义
 ```java
 public enum QueryRelation {
     /**
@@ -264,8 +267,6 @@ public enum QueryRelation {
 
 ### 查询字段或者查询类型说明
 
-#### 查询字段
-
 如需指定查询字段, `type`的值为`select_`+实体字段名,
 ```json
 {
@@ -376,6 +377,50 @@ public enum QueryRelation {
 ```
 此请求参数指定倒叙查询, `SELECT ... FROM TABLE ... ORDER BY field DESC`
 
+## 复杂查询
 
-
-接受`{ "type": "${field}", "value": "${value}" }`格式的条件列表, 可根据业务需求自由组合查询条件
+请求参数根层次`query`固定为`AND`, `conditions`为一元数组时查询单元间的关系为逻辑与
+```json
+{
+    "conditions": [
+        { "type": "user", "value": "user1" },
+        { "type": "deleteStatus", "value": "false" }
+    ]
+}
+```
+此请求参数生成的SQL为`SELECT * FROM TABLE WHERE user='user1' and delete_status=false`<br>
+如需要实现`OR`查询或复杂查询, 可以通过指定`conditions`的层次结构来实现
+```json
+{
+    "conditions": [
+        { "type": "user", "value": "user1" },
+        { "type": "deleteStatus", "value": "false" },
+        {
+            "query": "or",
+            "conditions": [
+                {
+                    "conditions": [
+                        { "type": "scope", "value": "scope1" }
+                    ]
+                },
+                {
+                    "conditions": [
+                        { "type": "scope", "value": "scope2" }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+```
+此请求参数生成的SQL为
+```sql
+SELECT
+    ...
+FROM
+    t_access_log accesslog0_ 
+WHERE
+    accesslog0_.user='user1'
+    AND accesslog0_.delete_status=false
+    AND (accesslog0_.scope='scope1' OR accesslog0_.scope='scope2')
+```

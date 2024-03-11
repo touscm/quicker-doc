@@ -174,7 +174,7 @@ curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
 	]
 }
 ```
-请求参数`conditions`为查询条件, 示例表示`field1 = value1 and field2 = value2`检索条件, 请求条件使用可参照 [查询条件说明](/Conditions.md "查询条件说明"), curl请求示例如下
+请求参数`conditions`为查询条件, 示例表示`field1 = value1 and field2 = value2`检索条件, 请求条件使用可参照 [查询条件说明](./Conditions.md "查询条件说明"), curl请求示例如下
 ```shell
 curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
   -d '{"conditions":[{"type":"field1","value":"value1"},{"type":"field2","value":"value2"}]}' \
