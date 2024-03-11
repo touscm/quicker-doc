@@ -56,41 +56,22 @@ public class RestResult<TModel> {
      * 数据模型
      */
     private TModel data;
-
-    /* ...... */
-
-    public RestResult() {
-    }
-
-    public RestResult(int status, TModel data) {
-        this(status, null, null, data);
-    }
-
-    public RestResult(int status, String message, Map<String, String> messageMap) {
-        this(status, message, null, null);
-        List<KeyValuePair<String, String>> messageDetails = null;
-        if (CollectionUtils.isNotEmpty(messageMap)) {
-            messageDetails = messageMap.entrySet().stream().map(a -> new KeyValuePair<String, String>(a.getKey(), a.getValue())).collect(toList());
-        }
-        this.messageDetails = messageDetails;
-    }
-
-    public RestResult(int status, String message, List<KeyValuePair<String, String>> messageDetails) {
-        this(status, message, messageDetails, null);
-    }
-
-    public RestResult(int status, String message, List<KeyValuePair<String, String>> messageDetails, TModel data) {
-        if (StringUtils.isEmpty(message) && CollectionUtils.isNotEmpty(messageDetails)) {
-            StringBuilder sb = new StringBuilder();
-            messageDetails.forEach(a -> sb.append(sb.length() == 0 ? EMPTY : ";").append(String.format("%s=%s", a.getKey(), a.getValue())));
-            message = String.format("数据验证失败, %s", sb);
-        }
-
-        this.status = status;
-        this.message = message;
-        this.messageDetails = messageDetails;
-        this.data = data;
-    }
+}
+```
+`RestResult.status`的数值参照`RestResultStatus`枚举类
+```java
+public enum RestResultStatus {
+    Success(200, "Success", "处理成功"),
+    NoData(204, "NoData", "无数据"),
+    ParamError(400, "ParamError", "参数错误"),
+    NoAuth(401, "NoAuth", "未认证"),
+    NoPermission(403, "NoPermission", "禁止访问"),
+    NotFound(404, "NotFoundUrl", "路由出错"),
+    NotAcceptable(406, "NotAcceptable", "禁止访问"),
+    Failed(417, "Failed", "处理失败"),
+    UserNameOrPasswordError(418, "UserNameOrPasswordError", "登录名或密码错误"),
+    UserForbidden(419, "UserForbidden", "用户被禁用"),
+    Error(500, "Error", "处理出错");
 }
 ```
 
@@ -101,7 +82,7 @@ public class RestResult<TModel> {
 > * [ControllerAction.EDIT](#ControllerAction.EDIT)
 > * [ControllerAction.ACTIVE](#ControllerAction.ACTIVE)
 > * [ControllerAction.DISABLE](#ControllerAction.DISABLE)
-> * [ControllerAction.DELETE](#ControllerAction.DELETE)
+> * [ControllerAction.DELETE](#ControllerAction.DISABLE)
 > * [ControllerAction.ANY](#ControllerAction.ANY)
 > * [ControllerAction.GET](#ControllerAction.GET)
 > * [ControllerAction.COUNT](#ControllerAction.COUNT)
@@ -113,7 +94,7 @@ public class RestResult<TModel> {
 
 ### ControllerAction.ADD
 
-`ADD`接口用于添加记录, 路由为`/api/user/add`, 其接收JSON数据格式为:
+`ADD`接口用于添加数据, 路由为`/api/user/add`, 接收JSON数据格式为:
 ```json
 {
 	"model": {
@@ -121,20 +102,86 @@ public class RestResult<TModel> {
 	}
 }
 ```
-请求参数`model`对应控制器类定义的模型类, 此时为`UserModel`
+请求参数`model`对应控制器类定义的模型类, 此时为`UserModel`, curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{"model":{"name":"UserName"}}' \
+  http://127.0.0.1:80/api/user/add
+```
 
 ### ControllerAction.EDIT
 
-`EDIT`接口用户编辑记录, 路由为`/api/user/edit`, 其接收JSON数据格式为:
+`EDIT`接口用于编辑数据, 路由为`/api/user/edit`, 接收JSON数据格式为:
 ```json
 {
 	"model": {
-		"id": "EntityId", "name": "NewUserName"
+		"id": "xxx", "name": "NewUserName"
 	}
 }
 ```
-请求参数`model`对应 `Controller` 定义的模型类.<br/>
+请求参数`model`对应控制器类定义的模型类, 此时为`UserModel`, curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{"model":{"id":"xxx","name":"UserName"}}' \
+  http://127.0.0.1:80/api/user/edit
+```
+<label style='color:red'>注意</label>: `edit`接口必须指定主键值
 
+### ControllerAction.ACTIVE
+
+`ACTIVE`接口用于恢复逻辑删除的数据, 路由为`/api/user/active`, 处理逻辑为设置实体的`deleteStatus`字段值为`false`, 接收JSON数据格式为:
+```json
+{
+	"conditions": [
+		{ "type": "id", "value": "xxx1" },
+        { "type": "id", "value": "xxx2" }
+	]
+}
+```
+请求参数`conditions`为查询条件, 此时为主键列表, 可恢复逻辑删除多条数据, curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{"conditions":[{"type":"id","value":"xxx1"},{"type":"id","value":"xxx2"}]}' \
+  http://127.0.0.1:80/api/user/active
+```
+
+### ControllerAction.DISABLE, ControllerAction.DELETE
+
+`DISABLE`和`DELETE`接口用于逻辑删除数据, 路由为`/api/user/disable`和`/api/user/delete`, 处理逻辑为设置实体的`deleteStatus`字段值为`true`, 接收JSON数据格式为:
+```json
+{
+	"conditions": [
+		{ "type": "id", "value": "xxx1" },
+        { "type": "id", "value": "xxx2" }
+	]
+}
+```
+请求参数`conditions`为查询条件, 此时为主键列表, 可逻辑删除多条数据, curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{"conditions":[{"type":"id","value":"xxx1"},{"type":"id","value":"xxx2"}]}' \
+  http://127.0.0.1:80/api/user/delete
+```
+
+### ControllerAction.ANY
+
+`ANY`接口用于判断数据是否存在, 路由为`/api/user/any`, 接收JSON数据格式为:
+```json
+{
+	"conditions": [
+		{ "type": "field1", "value": "value1" },
+        { "type": "field2", "value": "value2" }
+	]
+}
+```
+请求参数`conditions`为查询条件, 示例表示`field1 = value1 and field2 = value2`检索条件, 请求条件使用可参照 [查询条件说明](/Conditions.md "查询条件说明"), curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{"conditions":[{"type":"field1","value":"value1"},{"type":"field2","value":"value2"}]}' \
+  http://127.0.0.1:80/api/user/any
+```
+
+>>>>>>
 `deleteStatus` 方法, 路由为 "Controller/Delete", 其接收 JSON 数据格式为:
 ```json
 {
