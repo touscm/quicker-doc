@@ -1,274 +1,258 @@
-# 开发文档说明
+# 入门
 
->## 代码结构
->目录结构为:<br/>
->
->```
->project
->│   HELPER.md
->│   README.md
->│   pom.xml
->└───auto-insurance-domain
->│   └───src
->│       pom.xml
->└───auto-insurance-service
->│   └───src
->│       pom.xml
->└───auto-insurance-web
->│   └───src
->│       pom.xml
->└───docker
->│       Dockerfile
->└───sql
->        install.sql
->```
->`auto-insurance-domain`包括实体, 模型, 数据操作的代码实现;<br/>
->`carry-trucking-service`包括业务代码实现;<br/>
->`carry-trucking-web`包括 Web-API 的代码实现
+入门文档以最简结构
 
->## 编写代码
->需要实现的代码如下
+## 代码结构
+目录结构为:<br/>
 
->#### `auto-insurance-domain` 模块 - 实体类
->```java
->@Entity(vehicleId = "goods_template")
->public class GoodsTemplate extends BaseEntity {
->    @Id
->    @GeneratedValue(generator = "guid")
->    @GenericGenerator(vehicleId = "guid", strategy = "guid")
->    private String id;
->
->    private String vehicleId;
->
->    private Date createTime;
->    private Date updateTime;
->
->    public GoodsTemplate() {
->    }
->
->    public GoodsTemplate(String vehicleId) {
->        this.vehicleId = vehicleId;
->        this.createTime = new Date();
->    }
->
->    public String getId() {
->        return this.id;
->    }
->
->    public void setId(String value) {
->        this.id = value;
->    }
->
->    public String getName() {
->        return this.vehicleId;
->    }
->
->    public void setName(String value) {
->        this.vehicleId = value;
->    }
->
->    public Date getCreateTime() {
->        return createTime;
->    }
->
->    public void setCreateTime(Date createTime) {
->        this.createTime = createTime;
->    }
->
->    public Date getUpdateTime() {
->        return updateTime;
->    }
->
->    public void setUpdateTime(Date updateTime) {
->        this.updateTime = updateTime;
->    }
->}
->```
->实体类需继承自 `BaseEntity` 类<br/>
->实体类需添加 `@Entity` 注解, 驼峰形式的实体类名会自动转换为下划线表名.<br/>
->主键字段需添加 `@Id` 注解, `@GeneratedValue` 注解 和 `@GenericGenerator` 用于指定自动填值类型.
+```
+project
+└───auto-insurance-domain
+│   └───src
+│       pom.xml
+└───auto-insurance-service
+│   └───src
+│       pom.xml
+└───auto-insurance-web
+│   └───src
+│       pom.xml
+│   pom.xml
+```
+`auto-insurance-domain`包括实体, 模型, 数据操作的代码实现;<br/>
+`auto-insurance-service`包括业务代码实现;<br/>
+`auto-insurance-web`包括 Web-API 的代码实现
 
->#### `auto-insurance-domain` 模块 - 模型类
->```java
->public class GoodsTemplateModel extends BaseModel {
->    @Validation(policy = "edit")
->    private String id;
->
->    @Validation(policy = "add")
->    private String vehicleId;
->
->    private Date createTime;
->    private Date updateTime;
->    public String getId() {
->        return this.id;
->    }
->
->    public void setId(String value) {
->        this.id = value;
->    }
->
->    public String getName() {
->        return this.vehicleId;
->    }
->
->    public void setName(String value) {
->        this.vehicleId = value;
->    }
->
->    public Date getCreateTime() {
->        return createTime;
->    }
->
->    public void setCreateTime(Date createTime) {
->        this.createTime = createTime;
->    }
->
->    public Date getUpdateTime() {
->        return updateTime;
->    }
->
->    public void setUpdateTime(Date updateTime) {
->        this.updateTime = updateTime;
->    }
->}
->```
->模型类需继承自 `BaseModel` 类<br/>
->注解 `@Validation` 用于的指定数据验证, `policy` 表示验证的策略, 如果该模型只有一种验证验证方式则 `policy` 无需指定, 当然在数据验证的时候也不能指定策略.例如:<br/>
->定义
->```java
->    @Validation
->    private String id;
->```
->对应
->```java
->    model.validate(Policy.Add.getName());
->```
->定义
->```java
->    @Validation(policy = "add")
->    private String id;
->```
->对应
->```java
->    model.validate("add");
->```
+## 编写代码
+需要实现的代码如下
 
->#### `carry-trucking-domain` 模块 - 数据操作类
->```java
->@Repository
->public interface UserDao extends IDao<User> {
->}
->```
->数据操作类需继承自 `IDao`, 其泛型参数为所要操作的实体类;
-> 数据操作默认实现方法如下:
-> ```java
-> public interface IBaseDao<TEntity extends BaseEntry> {
->     long count(@NotNull Query<TEntity> var1);
->     long count(@NotEmpty List<ReqCondition> var1);
->     <V extends Number> V sumValue(@NotNull Query<TEntity> var1, @NotNull Getter<TEntity, V> var2);
->     <R> Optional<R> sum(@NotNull Query<TEntity> var1, @NotNull Class<R> var2);
->     <R> Optional<R> sum(@NotEmpty List<ReqCondition> var1, @NotNull Class<R> var2);
->     Optional<TEntity> querySingle(@NotNull Query<TEntity> var1);
->     Optional<TEntity> querySingle(@NotEmpty List<ReqCondition> var1);
->     List<TEntity> queryList(@NotNull Query<TEntity> var1);
->     List<TEntity> queryList(@NotEmpty List<ReqCondition> var1);
->     PagingEntry<TEntity> queryPaging(@NotNull Query<TEntity> var1, int var2, int var3);
->     PagingEntry<TEntity> queryPaging(@NotEmpty List<ReqCondition> var1, int var2, int var3);
->     int insert(@NotNull Query<TEntity> var1, @NotNull Consumer<String> var2);
->     int insert(@NotNull TEntity var1, @NotNull Consumer<String> var2);
->     int update(@NotNull Query<TEntity> var1);
->     int delete(@NotNull Query<TEntity> var1);
-> }
-> ```
->IDao默认方法请求参数为`List<ReqCondition>`和`Query<TEntity>`两种类型, 使用示例如下<br>
-> `List<ReqCondition>`:<br>
-> ```java
-> long count = userDao.count(Arrays.asList(new ReqCondition("name", "123"), new ReqCondition("phone", "13000000000")));
->```
-> `Query<TEntity>`:<br>
-> ```java
-> long count = userDao.count(new Query<User>(User::getName, "123").and(User::getPhone, "13000000000"));
->```
+#### `auto-insurance-domain` 模块 - 实体类
+```java
+@Entity(vehicleId = "goods_template")
+public class GoodsTemplate extends BaseEntity {
+    @Id
+    @GeneratedValue(generator = "guid")
+    @GenericGenerator(vehicleId = "guid", strategy = "guid")
+    private String id;
+    private String vehicleId;
+    private Date createTime;
+    private Date updateTime;
 
->#### `carry-trucking-service`模块 - 服务类
->```java
-> @Service
-> public interface UserService extends IService<User, UserModel, UserViewModel, UserDao> {
-> }
->```
-> 服务类需继承自 `IService` 接口, 其泛型参数依次为: 实体类, 模型类, 试图模型类, 数据操作类, 模型类和试图模型类可相同
-> `IService`默认实现了添加,查询,更新,删除等操作, 类似`IDao`默认实现
+    public GoodsTemplate() {
+    }
+    public GoodsTemplate(String vehicleId) {
+        this.vehicleId = vehicleId;
+        this.createTime = new Date();
+    }
 
->#### `carry-trucking-web` 模块 - 控制器
->```java
->@RestController
->public class GoodsTemplateController extends BaseController<GoodsTemplate, GoodsTemplateModel, GoodsTemplateModel, GoodsTemplateServiceImpl> {
->
->}
->```
->控制器需继承自 `BaseController` 类, 其泛型参数依次为: 实体类, 模型类, 视图模型类, 服务类.<br/>
->控制器需添加 `@Controller` 注解, `@RestController` 表示该控制器返回 JSON 对象.<br/>
->`BaseController`默认实现 `add`, `edit`, `deleteStatus`, `get`, `pagging` 方法.<br/>
->`add` 方法, 路由为 "Controller/Add", 其接收 JSON 数据格式为:
->```json
->{
->	"model": {
->		"vehicleId": "货源模板 2018-08-01 18:54"
->	}
->}
->```
->其中 `model` 对应 `Controller` 定义的模型类.<br/>
->`edit` 方法, 路由为 "Controller/Edit", 其接收 JSON 数据格式为:
->```json
->{
->	"model": {
->		"id": "xxx",
->		"vehicleId": "货源模板 2018-08-01 20:54"
->	}
->}
->```
->其中 `model` 对应 `Controller` 定义的模型类.<br/>
->`deleteStatus` 方法, 路由为 "Controller/Delete", 其接收 JSON 数据格式为:
->```json
->{
->	"conditions": [
->		{ "type": "GoodsTemplateId", "value": "48780417-957c-11e8-af7d-f0def19cb946" }
->	]
->}
->```
->其中 `conditions` -> `type` 的值为 实体类类名+实体类主键字段名, `conditions` -> `value` 的值为 主键的值.<br/>
->删除操作可包含多个参数<br/>
-><label style='color:red'>注意</label>:实体类需包含 `isDelete` 字段删除操作才能正常工作.<br/>
->`get` 方法, 路由为 "Controller/Get", 其接收 JSON 数据格式为:
->```json
->{
->	"conditions": [
->		{ "type": "GoodsTemplateId", "value": "48780417-957c-11e8-af7d-f0def19cb946" }
->	]
->}
->```
->格式同删除操作
->`pagging` 方法, 路由为 "Controller/Pagging", 其接收 JSON 数据格式为:
->```json
->{
->	"page": 1,
->	"pageSize": 20,
->	"conditions": [
->		{ "type": "Name", "value": "货源模板" }
->	]
->}
->```
->
+    public String getId() {
+        return this.id;
+    }
+    public void setId(String value) {
+        this.id = value;
+    }
 
->所有方法返回 JSON 格式为:
->```json
->{
->	"status": 200,
->	"message": "处理成功",
->	"data": null
->}
->```
->`status` 值可参照 ./carry-common/src/main/java/com/tyy/carry/common/web/RestResultStatus.java
+    public String getName() {
+        return this.vehicleId;
+    }
+    public void setName(String value) {
+        this.vehicleId = value;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+}
+```
+实体类需继承自 `BaseEntity` 类<br/>
+实体类需添加 `@Entity` 注解, 驼峰形式的实体类名会自动转换为下划线表名.<br/>
+主键字段需添加 `@Id` 注解, `@GeneratedValue` 注解 和 `@GenericGenerator` 用于指定自动填值类型.
+
+#### `auto-insurance-domain` 模块 - 模型类
+```java
+public class GoodsTemplateModel extends BaseModel {
+    @Validation(policy = "edit")
+    private String id;
+    @Validation(policy = "add")
+    private String vehicleId;
+    private Date createTime;
+    private Date updateTime;
+    public String getId() {
+        return this.id;
+    }
+
+    public void setId(String value) {
+        this.id = value;
+    }
+
+    public String getName() {
+        return this.vehicleId;
+    }
+
+    public void setName(String value) {
+        this.vehicleId = value;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+}
+```
+模型类需继承自 `BaseModel` 类<br/>
+注解 `@Validation` 用于的指定数据验证, `policy` 表示验证的策略, 如果该模型只有一种验证验证方式则 `policy` 无需指定, 当然在数据验证的时候也不能指定策略.例如:<br/>
+定义
+```java
+    @Validation
+    private String id;
+```
+对应
+```java
+    model.validate(Policy.Add.getName());
+```
+定义
+```java
+    @Validation(policy = "add")
+    private String id;
+```
+对应
+```java
+    model.validate("add");
+```
+
+#### `carry-trucking-domain` 模块 - 数据操作类
+```java
+@Repository
+public interface UserDao extends IDao<User> {
+}
+```
+数据操作类需继承自 `IDao`, 其泛型参数为所要操作的实体类;
+ 数据操作默认实现方法如下:
+ ```java
+ public interface IBaseDao<TEntity extends BaseEntry> {
+     long count(@NotNull Query<TEntity> var1);
+     long count(@NotEmpty List<ReqCondition> var1);
+     <V extends Number> V sumValue(@NotNull Query<TEntity> var1, @NotNull Getter<TEntity, V> var2);
+     <R> Optional<R> sum(@NotNull Query<TEntity> var1, @NotNull Class<R> var2);
+     <R> Optional<R> sum(@NotEmpty List<ReqCondition> var1, @NotNull Class<R> var2);
+     Optional<TEntity> querySingle(@NotNull Query<TEntity> var1);
+     Optional<TEntity> querySingle(@NotEmpty List<ReqCondition> var1);
+     List<TEntity> queryList(@NotNull Query<TEntity> var1);
+     List<TEntity> queryList(@NotEmpty List<ReqCondition> var1);
+     PagingEntry<TEntity> queryPaging(@NotNull Query<TEntity> var1, int var2, int var3);
+     PagingEntry<TEntity> queryPaging(@NotEmpty List<ReqCondition> var1, int var2, int var3);
+     int insert(@NotNull Query<TEntity> var1, @NotNull Consumer<String> var2);
+     int insert(@NotNull TEntity var1, @NotNull Consumer<String> var2);
+     int update(@NotNull Query<TEntity> var1);
+     int delete(@NotNull Query<TEntity> var1);
+ }
+ ```
+IDao默认方法请求参数为`List<ReqCondition>`和`Query<TEntity>`两种类型, 使用示例如下<br>
+ `List<ReqCondition>`:<br>
+ ```java
+ long count = userDao.count(Arrays.asList(new ReqCondition("name", "123"), new ReqCondition("phone", "13000000000")));
+```
+ `Query<TEntity>`:<br>
+```java
+ long count = userDao.count(new Query<User>(User::getName, "123").and(User::getPhone, "13000000000"));
+```
+
+#### `carry-trucking-service`模块 - 服务类
+```java
+ @Service
+ public interface UserService extends IService<User, UserModel, UserViewModel, UserDao> {
+ }
+```
+服务类需继承自 `IService` 接口, 其泛型参数依次为: 实体类, 模型类, 试图模型类, 数据操作类, 模型类和试图模型类可相同
+`IService`默认实现了添加,查询,更新,删除等操作, 类似`IDao`默认实现
+
+#### `carry-trucking-web` 模块 - 控制器
+```java
+@RestController
+public class GoodsTemplateController extends BaseController<GoodsTemplate, GoodsTemplateModel, GoodsTemplateModel, GoodsTemplateServiceImpl> {
+
+}
+```
+控制器需继承自 `BaseController` 类, 其泛型参数依次为: 实体类, 模型类, 视图模型类, 服务类.<br/>
+控制器需添加 `@Controller` 注解, `@RestController` 表示该控制器返回 JSON 对象.<br/>
+`BaseController`默认实现 `add`, `edit`, `deleteStatus`, `get`, `pagging` 方法.<br/>
+`add` 方法, 路由为 "Controller/Add", 其接收 JSON 数据格式为:
+```json
+{
+	"model": {
+		"vehicleId": "货源模板 2018-08-01 18:54"
+	}
+}
+```
+其中 `model` 对应 `Controller` 定义的模型类.<br/>
+`edit` 方法, 路由为 "Controller/Edit", 其接收 JSON 数据格式为:
+```json
+{
+	"model": {
+		"id": "xxx",
+		"vehicleId": "货源模板 2018-08-01 20:54"
+	}
+}
+```
+其中 `model` 对应 `Controller` 定义的模型类.<br/>
+`deleteStatus` 方法, 路由为 "Controller/Delete", 其接收 JSON 数据格式为:
+```json
+{
+	"conditions": [
+		{ "type": "GoodsTemplateId", "value": "48780417-957c-11e8-af7d-f0def19cb946" }
+	]
+}
+```
+其中 `conditions` -> `type` 的值为 实体类类名+实体类主键字段名, `conditions` -> `value` 的值为 主键的值.<br/>
+删除操作可包含多个参数<br/>
+<label style='color:red'>注意</label>:实体类需包含 `isDelete` 字段删除操作才能正常工作.<br/>
+`get` 方法, 路由为 "Controller/Get", 其接收 JSON 数据格式为:
+```json
+{
+	"conditions": [
+		{ "type": "GoodsTemplateId", "value": "48780417-957c-11e8-af7d-f0def19cb946" }
+	]
+}
+```
+格式同删除操作
+`pagging` 方法, 路由为 "Controller/Pagging", 其接收 JSON 数据格式为:
+```json
+{
+	"page": 1,
+	"pageSize": 20,
+	"conditions": [
+		{ "type": "Name", "value": "货源模板" }
+	]
+}
+```
+
+所有方法返回 JSON 格式为:
+```json
+{
+	"status": 200, "message": "处理成功", "data": null
+}
+```
+`status` 值可参照 ./carry-common/src/main/java/com/tyy/carry/common/web/RestResultStatus.java
 
 #### Web Api 使用说明
 除了/auth/login和/auth/forgetpassword之外的接口都需要在http header添加key为"Authorization", value为"Bearer eyJhbGciOiJOb25lIiwidHlwIjoiVG9rZW4ifQ.eyJtb2JpbGUiOiIiLCJuYW1lIjoidXNlcjEiLCJ0b2tlbiI6ImYyNjM4YjljM2U4NjRiN2Q5MDJhNjE2NmU4ZjZlNWE3In0."的内容;

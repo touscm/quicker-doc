@@ -94,13 +94,9 @@ public enum RestResultStatus {
 
 ### ControllerAction.ADD
 
-`ADD`接口用于添加数据, 路由为`/api/user/add`, 接收JSON数据格式为:
+`ADD`接口用于添加数据, 路由为`/api/user/add`, 接收JSON数据, 格式为:
 ```json
-{
-	"model": {
-		"name": "UserName"
-	}
-}
+{ "model": { "name": "UserName" }}
 ```
 请求参数`model`对应控制器类定义的模型类, 此时为`UserModel`, curl请求示例如下
 ```shell
@@ -108,16 +104,13 @@ curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
   -d '{"model":{"name":"UserName"}}' \
   http://127.0.0.1:80/api/user/add
 ```
+<label style='color:red'>注意</label>: `ADD`接口会进行参数校验, 关于数据格式校验请参照[数据格式校验说明](./Validation.md "数据格式校验说明")
 
 ### ControllerAction.EDIT
 
-`EDIT`接口用于编辑数据, 路由为`/api/user/edit`, 接收JSON数据格式为:
+`EDIT`接口用于编辑数据, 路由为`/api/user/edit`, 接收JSON数据, 格式为:
 ```json
-{
-	"model": {
-		"id": "xxx", "name": "NewUserName"
-	}
-}
+{ "model": { "id": "xxx", "name": "NewUserName" }}
 ```
 请求参数`model`对应控制器类定义的模型类, 此时为`UserModel`, curl请求示例如下
 ```shell
@@ -125,18 +118,13 @@ curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
   -d '{"model":{"id":"xxx","name":"UserName"}}' \
   http://127.0.0.1:80/api/user/edit
 ```
-<label style='color:red'>注意</label>: `edit`接口必须指定主键值
+<label style='color:red'>注意</label>: `edit`接口必须指定主键值, `EDIT`接口会进行参数校验, 关于数据格式校验请参照[数据格式校验说明](./Validation.md "数据格式校验说明")
 
 ### ControllerAction.ACTIVE
 
-`ACTIVE`接口用于恢复逻辑删除的数据, 路由为`/api/user/active`, 处理逻辑为设置实体的`deleteStatus`字段值为`false`, 接收JSON数据格式为:
+`ACTIVE`接口用于恢复逻辑删除的数据, 路由为`/api/user/active`, 处理逻辑为设置实体的`deleteStatus`字段值为`false`, 接收JSON数据, 格式为:
 ```json
-{
-	"conditions": [
-		{ "type": "id", "value": "xxx1" },
-        { "type": "id", "value": "xxx2" }
-	]
-}
+{ "conditions": [{ "type": "id", "value": "xxx1" }, { "type": "id", "value": "xxx2" }]}
 ```
 请求参数`conditions`为查询条件, 此时为主键列表, 可恢复逻辑删除多条数据, curl请求示例如下
 ```shell
@@ -147,14 +135,9 @@ curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
 
 ### ControllerAction.DISABLE, ControllerAction.DELETE
 
-`DISABLE`和`DELETE`接口用于逻辑删除数据, 路由为`/api/user/disable`和`/api/user/delete`, 处理逻辑为设置实体的`deleteStatus`字段值为`true`, 接收JSON数据格式为:
+`DISABLE`和`DELETE`接口用于逻辑删除数据, 路由为`/api/user/disable`和`/api/user/delete`, 处理逻辑为设置实体的`deleteStatus`字段值为`true`, 接收JSON数据, 格式为:
 ```json
-{
-	"conditions": [
-		{ "type": "id", "value": "xxx1" },
-        { "type": "id", "value": "xxx2" }
-	]
-}
+{ "conditions": [{ "type": "id", "value": "xxx1" }, { "type": "id", "value": "xxx2" }]}
 ```
 请求参数`conditions`为查询条件, 此时为主键列表, 可逻辑删除多条数据, curl请求示例如下
 ```shell
@@ -165,300 +148,254 @@ curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
 
 ### ControllerAction.ANY
 
-`ANY`接口用于判断数据是否存在, 路由为`/api/user/any`, 接收JSON数据格式为:
+`ANY`接口用于判断数据是否存在, 路由为`/api/user/any`, 接收JSON数据, 格式为:
 ```json
-{
-	"conditions": [
-		{ "type": "field1", "value": "value1" },
-        { "type": "field2", "value": "value2" }
-	]
-}
+{ "conditions": [{ "type": "field1", "value": "value1" }, { "type": "field2", "value": "value2" }]}
 ```
-请求参数`conditions`为查询条件, 示例表示`field1 = value1 and field2 = value2`检索条件, 请求条件使用可参照 [查询条件说明](./Conditions.md "查询条件说明"), curl请求示例如下
+查询条件参数`conditions`的使用可参照[查询条件说明](./Conditions.md "查询条件说明"), curl请求示例如下
 ```shell
 curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
   -d '{"conditions":[{"type":"field1","value":"value1"},{"type":"field2","value":"value2"}]}' \
   http://127.0.0.1:80/api/user/any
 ```
 
->>>>>>
-`deleteStatus` 方法, 路由为 "Controller/Delete", 其接收 JSON 数据格式为:
+### ControllerAction.GET
+
+`GET`接口用于取得单条数据, 返回结果`data`字段为视图模型类, 路由为`/api/user/get`, 接收JSON数据, 格式为:
+```json
+{ "conditions": [{ "type": "username", "value": "admin" }, { "type": "deleteStatus", "value": "false" }]}
+```
+查询条件参数`conditions`的使用请参照 [查询条件说明](./Conditions.md "查询条件说明"), curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{ "conditions": [{ "type": "username", "value": "admin" }, { "type": "deleteStatus", "value": "false" }]}' \
+  http://127.0.0.1:80/api/user/get
+```
+返回结果示例
 ```json
 {
-	"conditions": [
-		{ "type": "GoodsTemplateId", "value": "48780417-957c-11e8-af7d-f0def19cb946" }
-	]
-}
-```
-其中 `conditions` -> `type` 的值为 实体类类名+实体类主键字段名, `conditions` -> `value` 的值为 主键的值.<br>
-删除操作可包含多个参数<br>
-<label style='color:red'>注意</label>:实体类需包含 `isDelete` 字段删除操作才能正常工作.<br>
-`get` 方法, 路由为 "Controller/Get", 其接收 JSON 数据格式为:
-
-```json
-{
-	"conditions": [
-		{ "type": "GoodsTemplateId", "value": "48780417-957c-11e8-af7d-f0def19cb946" }
-	]
-}
-```
-格式同删除操作
-`pagging` 方法, 路由为 "Controller/Pagging", 其接收 JSON 数据格式为:
-```json
-{
-	"page": 1,
-	"pageSize": 20,
-	"conditions": [
-		{ "type": "Name", "value": "货源模板" }
-	]
-}
-```
-
-
-所有方法返回 JSON 格式为:
-```json
-{
-	"status": 200,
-	"message": "处理成功",
-	"data": null
-}
-```
-`status` 值可参照 ./carry-common/src/main/java/com/tyy/carry/common/web/RestResultStatus.java
-
-#### Web Api 使用说明
-除了/auth/login和/auth/forgetpassword之外的接口都需要在http header添加key为"Authorization", value为"Bearer eyJhbGciOiJOb25lIiwidHlwIjoiVG9rZW4ifQ.eyJtb2JpbGUiOiIiLCJuYW1lIjoidXNlcjEiLCJ0b2tlbiI6ImYyNjM4YjljM2U4NjRiN2Q5MDJhNjE2NmU4ZjZlNWE3In0."的内容;
-其中value的值中Bearer + 空格后的内容根据用户登陆返回的信息通过Base64Url编码得到, 下面说明编码具体实现.
-编码由header,payload,signature共3部分组成,中间同过"."符号合并.
-`header`内容为
-```json
-{
-    "typ": "Token",
-    "alg": "None"
-}
-```
-经过Base64编码后得到eyJhbGciOiJOb25lIiwidHlwIjoiVG9rZW4ifQ
-`payload`内容为
-```json
-{
-    "name": "用户名",
-    "mobile": "手机号",
-    "token": "登陆接口返回的sessionToken"
-}
-```
-`signature`暂时不支持
-
-示例
-header:
-```json
-{
-    "typ": "Token",
-    "alg": "None"
-}
-```
-
-payload:
-```json
-{
-    "name": "username1",
-    "mobile": "",
-    "token": "458DDF038E7946A393ECA59771CB02FB"
-}
-```
-编码后的结果为
-Bearer eyJ0eXAiOiJUb2tlbiIsImFsZyI6Ik5vbmUifQ.eyJuYW1lIjoidXNlcm5hbWUxIiwidG9rZW4iOiI0NThEREYwMzhFNzk0NkEzOTNFQ0E1OTc3MUNCMDJGQiJ9.
-
-#### 登陆接口变更
-添加 "platformId" 参数, 该字段为平台ID;
-字段 "loginType" 增加值; 明细如下:
-0: 货主用户名登陆; 1: 车主手机号登陆; 2: 司机手机号登陆, 3: 车牌号登陆; 10: 系统用户登录, 使用用户名; 11: 平台用户登录, 使用用户名;
-
-#### 认证方式变更
-添加 "region", "role", "identity" 字段, 删除 "name", "mobile" 字段;
-"region" 表示平台类型, 货主,车主,司机,平台管理员是该字段的值为 "Platform", 系统管理员时该字段值为 "System"
-"role" 表示角色类型, 货主时该字段为 "Shipper", 车主时该字段值为 "Carowner", 车主登陆时该字段值为 "Driver", 车牌号登陆时该字段为 "CarNo"
-"identity" 表示登陆识别字段, 货主登陆时表示用户名, 车主和司机登陆时表示手机, 车牌号登陆时表示为车牌号
-
-#### 查询条件使用
-查询, 更新, 删除处理条件判断, 默认使用 ```List<ReqCondition>```, 暂时只支持AND, OR未实现<br>
-```ReqCondition```类定义为:
-```java
-public class ReqCondition {
-    String type;
-    String value;
-}
-```
-type用于指定字段名, value用于指定数值<br>
-##### 等于查询
-```Arrays.asList(new ReqCondition("name", "name1"))```, 查询字段name等于name1的数据
-##### 不等于查询
-```Arrays.asList(new ReqCondition("neq_name", "name1"))```, 查询字段name不等于name1的数据
-##### 大于查询
-```Arrays.asList(new ReqCondition("gt_val", "1"))```, 查询字段val大于1的数据
-##### 小于查询
-```Arrays.asList(new ReqCondition("lt_val", "1"))```, 查询字段val小于1的数据
-##### LIKE查询
-```Arrays.asList(new ReqCondition("like_name", "a"))```, 查询字段name包含a的数据
-##### IN查询
-```Arrays.asList(new ReqCondition("in_val", "1"), new ReqCondition("in_val", "2"))```, 查询字段val是1或2的数据
-##### ISNULL查询
-```Arrays.asList(new ReqCondition("null_val", ""))```, 查询字段val是null的数据, 无需设值value字段
-##### NOT ISNULL查询
-```Arrays.asList(new ReqCondition("notnull_val", ""))```, 查询字段val不是null的数据, 无需设值value字段
-##### Like查询
-```Arrays.asList(new ReqCondition("start_val", "start"))```, 查询字段val是否以start开始
-##### Like查询
-```Arrays.asList(new ReqCondition("end_val", "end"))```, 查询字段val是否以end结尾
-##### 为空查询
-```Arrays.asList(new ReqCondition("empty_val", ""))```, 查询字段val是否为空字符串
-##### 不为空查询
-```Arrays.asList(new ReqCondition("notempty_val", ""))```, 查询字段val是否不为空字符串
-
-#### 使用事务
-使用范围为 <b>BaseService</b> 的实现类, 方法定义:<br>
-```java
-protected <T> Optional<ProcessResult<T>> doTransaction(Supplier<ProcessResult<T>> supplier)
-```
-参数为 <b>ProcessResult<T></b> 类型提供委托, <b>ProcessResult<T></b> 定义为<br>
-```java
-public class ProcessResult<T> {
-    private boolean success;
-    private T data;
-}
-```
-<b>ProcessResult<T></b> 字段 success 为 ture 时执行处理提交, 否则处理回滚, 执行体已包含异常处理<br>
-使用示例:<br>
-```java
-    public boolean active(List<String> ids, boolean usePermission) {
-        Objects.requireNonNull(ids);
-
-        try {
-            List<TEntity> entities = this.getEntityListByIds(ids, usePermission);
-
-            if (!CollectionUtils.isEmpty(entities)) {
-                entities.forEach(a -> {
-                    EntryUtils.setEntityDelete(a, false);
-                    getSession().ifPresent(i -> a.setUpdateBy(i.getName()));
-                    a.setUpdateTime(new Date());
-                });
-
-                AtomicBoolean ref = new AtomicBoolean();
-                this.doTransaction(() -> new ProcessResult<>(!CollectionUtils.isEmpty(this.dao.saveAll(entities)))).ifPresent(a -> ref.set(a.isSuccess()));
-
-                return ref.get();
-            }
-        } catch (Exception e) {
-            logger.error(String.format("数据启用失败, Param:{ ids:%s, usePermission:%s }", EntryUtils.getEntryInfo(ids), usePermission), e);
-        }
-
-        return false;
+    "status": 200,
+    "message": "处理成功",
+    "messageDetails": null,
+    "data": {
+        "id": "15901325908815857588",
+        "username": "admin",
+        "password": "e10adc3949ba59abbe56e057f20f883e",
+        "salt": null,
+        "mobile": "18229051989",
+        "createTime": "2020-05-22 15:29:51",
+        "createBy": null,
+        "updateTime": "2020-06-08 17:04:31",
+        "updateBy": "15901325908815857588",
+        "deleteStatus": false
     }
-```
-
-## 签名验签
-
-### 系统签名
-系统发送消息或者应答平台请求时会做签名处理, HTTP头报文如下:
-```
-TyyOpen-Timestamp: 1627374437
-TyyOpen-Nonce: 150967fe0671410ba3a7525e5f5e2506
-TyyOpen-Signature: CtcbzwtQjN8rnOXItEBJ5aQFSnIXESeV28Pr2YEmf9wsDQ8Nx25ytW6FXBCAFdrr0mgqngX3AD9gNzjnNHzSGTPBSsaEkIfhPF4b8YRRTpny88tNLyprXA0GU5ID3DkZHpjFkX1hAp/D0fva2GKjGRLtvYbtUk/OLYqFuzbjt3yOBzJSKQqJsvbXILffgAmX4pKql+Ln+6UPvSCeKwznvtPaEx+9nMBmKu7Wpbqm/+2ksc0XwjD+xlvlECkCxfD/OJ4gN3IurE0fpjxIkvHDiinQmk51BI7zQD8k1znU7r/spPqB+vZjc5ep6DC5wZUpFu5vJ8MoNKjCu8wnzyCFdA==
-TyyOpen-Serial: 5157F09EFDC096DE15EBE81A47057A7232F1B8E1
-
-{"data":[{"serial_no":"5157F09EFDC096DE15EBE81A47057A7232F1B8E1","effective_time":"2018-03-26T11:39:50+08:00","expire_time":"2023-03-25T11:39:50+08:00","encrypt_certificate":{"algorithm":"AEAD_AES_256_GCM","nonce":"4de73afd28b6","associated_data":"certificate","ciphertext":"..."}}]}
-```
-参数说明<br>
-TyyOpen-Timestamp: 签名时间戳<br>
-TyyOpen-Nonce: 签名随机字符<br>
-TyyOpen-Signature: 签名结果, 需要三方平台做验签处理<br>
-TyyOpen-Serial: 三方平台证书序号<br>
-
-签名内容格式为 “签名时间戳 + \n + 签名随机字符 + \n + 报文主体 + \n”, 如下:
-```
-1627374437
-150967fe0671410ba3a7525e5f5e2506
-{"data":[{"serial_no":"5157F09EFDC096DE15EBE81A47057A7232F1B8E1","effective_time":"2018-03-26T11:39:50+08:00","expire_time":"2023-03-25T11:39:50+08:00","encrypt_certificate":{"algorithm":"AEAD_AES_256_GCM","nonce":"4de73afd28b6","associated_data":"certificate","ciphertext":"..."}}]}
-```
-签名处理示例:
-```java
-String pkcs8KeyPath = "PKCS8私钥路径";
-String message = "签名时间戳" + "\n" + "签名随机字符" + "\n" + "报文内容" + "\n";
-String sign = com.touscm.quicker.security.utils.SignatureUtils.sign(pkcs8KeyPath, message);
-```
-
-### 通用通知数据
-```java
-public class NotifyEntry {
-    /**
-     * 通知ID
-     */
-    @NotEmpty(message = "通知ID不能为空")
-    private String id;
-    /**
-     * 通知创建时间
-     */
-    @JsonProperty("create_time")
-    @JsonFormat(pattern = "YYYY-MM-dd'T'HH:mm:ss+08:00", timezone = "GMT+8")
-    @NotNull(message = "通知创建时间不能为NULL")
-    private Date createTime;
-    /**
-     * 通知类型
-     */
-    @JsonProperty("event_type")
-    @NotEmpty(message = "通知类型不能为空")
-    private String eventType;
-    /**
-     * 通知数据类型
-     */
-    @JsonProperty("resource_type")
-    @NotEmpty(message = "通知数据类型不能为空")
-    private String resourceType;
-    /**
-     * 通知数据
-     */
-    @NotNull(message = "通知数据不能为NULL")
-    private ResourceEntry resource;
-    /**
-     * 回调摘要
-     */
-    @NotEmpty(message = "回调摘要不能为空")
-    private String summary;
 }
 ```
+<label style='color:red'>注意</label>: `GET`接口在指定主键时将忽略其他请求条件
 
-### 通知加密数据
-```java
-public class ResourceEntry {
-    /**
-     * 加密算法类型
-     * 示例值: AEAD_AES_256_GCM
-     */
-    @NotEmpty(message = "加密算法类型不能为空")
-    private String algorithm;
-    /**
-     * 数据密文
-     */
-    @NotEmpty(message = "数据密文不能为空")
-    private String ciphertext;
-    /**
-     * 附加数据
-     */
-    @JsonProperty("associated_data")
-    private String associatedData;
-    /**
-     * 加密使用的随机串
-     */
-    @NotEmpty(message = "随机串不能为空")
-    private String nonce;
+### ControllerAction.COUNT
+
+`COUNT`接口用于统计数据条数, 返回结果`data`字段为长整型数值, 路由为`/api/user/count`, 接收JSON数据, 格式为:
+```json
+{ "conditions": [{ "type": "field1", "value": "value1" }, { "type": "field2", "value": "value2" }]}
+```
+查询条件参数`conditions`的使用请参照 [查询条件说明](./Conditions.md "查询条件说明"), curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{"conditions":[{"type":"field1","value":"value1"},{"type":"field2","value":"value2"}]}' \
+  http://127.0.0.1:80/api/user/count
+```
+返回示例
+```json
+{"status":200,"message":"处理成功","messageDetails":null,"data":1097}
+```
+<label style='color:red'>注意</label>: `COUNT`接口会默认添加`delete_status=true`条件
+
+### ControllerAction.LISTING
+
+`LISTING`接口返回数据列表, 返回结果`data`字段为视图模型类列表, 路由为`/api/user/listing`, 接收JSON数据, 格式为:
+```json
+{ "conditions": [{ "type": "username", "value": "admin" }, { "type": "deleteStatus", "value": "false" }]}
+```
+查询条件参数`conditions`的使用请参照 [查询条件说明](./Conditions.md "查询条件说明"), curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{ "conditions": [{ "type": "username", "value": "admin" }, { "type": "deleteStatus", "value": "false" }]}' \
+  http://127.0.0.1:80/api/user/count
+```
+返回示例
+```json
+{
+    "status": 200,
+    "message": "处理成功",
+    "messageDetails": null,
+    "data": [
+        {
+            "id": "15901325908815857588",
+            "username": "admin",
+            "password": "e10adc3949ba59abbe56e057f20f883e",
+            "salt": null,
+            "mobile": "18229051989",
+            "createTime": "2020-05-22 15:29:51",
+            "createBy": null,
+            "updateTime": "2020-06-08 17:04:31",
+            "updateBy": "15901325908815857588",
+            "deleteStatus": false
+        }
+    ]
 }
 ```
+<label style='color:red'>注意</label>: `LISTING`接口会默认添加`delete_status=true`条件
 
-加密处理示例:
-```java
-String apiKey = "三方密钥";
-String nonce = "随机16位字符-加密初始化向量";
-String businessData = "业务数据";
-String ciphertext = com.touscm.quicker.utils.EncryptUtils.aesGcmEncode(apiKey, nonce, businessData);
+### ControllerAction.SELECTLIST
+
+`SELECTLIST`接口返回键值对列表, 返回结果`data`字段为`{ "key": "", "value": "" }`列表, 路由为`/api/user/selectlist`, 接收JSON数据, 格式为:
+```json
+{
+	"keyValuePair": { "key": "id", "value": "username" },
+	"conditions": [
+		{ "type": "in_id", "value": "15901325908815857588" }, { "type": "in_id", "value": "16774604479413803319" }
+	]
+}
 ```
+`keyValuePair`指定键值对对应实体的字段名, `conditions`指定查询条件列表, `conditions`的使用请参照 [查询条件说明](./Conditions.md "查询条件说明"), curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{ "conditions": [{ "type": "username", "value": "admin" }, { "type": "deleteStatus", "value": "false" }]}' \
+  http://127.0.0.1:80/api/user/selectlist
+```
+返回示例
+```json
+{
+    "status": 200,
+    "message": null,
+    "messageDetails": null,
+    "data": [
+        {
+            "key": "15901325908815857588",
+            "value": "admin"
+        },
+        {
+            "key": "16774604479413803319",
+            "value": "chenjian"
+        }
+    ]
+}
+```
+<label style='color:red'>注意</label>: `LISTING`接口会默认添加`delete_status=true`条件
+
+### ControllerAction.PAGING
+
+`PAGING`接口返回键值对列表, 结果`data`字段为分页信息(分页索引,分页尺寸,总条数,页数,数据列表), 路由为`/api/user/paging`, 接收JSON数据, 格式为:
+```json
+{
+	"page": 1, "size": 2, "conditions": [{ "type": "deleteStatus", "value": "false" }]
+}
+```
+`page`指定分页页码, `size`指定分页尺寸, `conditions`指定查询条件列表, `conditions`的使用请参照 [查询条件说明](./Conditions.md "查询条件说明"), curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{ "page": 1, "size": 2, "conditions": [{ "type": "deleteStatus", "value": "false" }]}' \
+  http://127.0.0.1:80/api/user/paging
+```
+返回示例
+```json
+{
+    "status": 200,
+    "message": "处理成功",
+    "messageDetails": null,
+    "data": {
+        "pageIndex": 1,
+        "pageSize": 2,
+        "itemCount": 14,
+        "pageCount": 7,
+        "itemList": [
+            {
+                "id": "15901325908815857588",
+                "username": "admin",
+                "password": "e10adc3949ba59abbe56e057f20f883e",
+                "salt": null,
+                "mobile": "18229051989",
+                "createTime": "2020-05-22 15:29:51",
+                "createBy": null,
+                "updateTime": "2020-06-08 17:04:31",
+                "updateBy": "15901325908815857588",
+                "deleteStatus": false
+            },
+            {
+                "id": "16594207675436455039",
+                "username": "liuzhe001",
+                "password": "e10adc3949ba59abbe56e057f20f883e",
+                "salt": "30327011b3494a61a88d05fcdc44f47c",
+                "mobile": "13891351860",
+                "createTime": "2022-08-02 14:12:48",
+                "createBy": "15901325908815857588",
+                "updateTime": "2023-08-16 12:59:36",
+                "updateBy": "15901325908815857588",
+                "deleteStatus": false
+            }
+        ]
+    }
+}
+```
+<label style='color:red'>注意</label>: `LISTING`接口会默认添加`delete_status=true`条件
+
+### ControllerAction.SUM
+
+`SUM`接口返回字段合计, 结果`data`字段为分页信息(分页索引,分页尺寸,总条数,页数,数据列表), 路由为`/api/user/sum`, 接收JSON数据, 格式为:
+```json
+{
+	"conditions": [
+		{ "type": "sum_balanceTotal", "value": "" },
+		{ "type": "sum_rechargeAmoun", "value": "" },
+		{ "type": "sum_consumptionAmount", "value": "" },
+		{ "type": "sum_withdrawAmount", "value": "" },
+		{ "type": "deleteStatus", "value": "false" }
+	]
+}
+```
+`SUM`接口需指定合计字段, 格式为`{ "type": "sum_${FieldName}", "value": "" }`, `${FieldName}`为实体字段名, 可指定多个字段<br>
+`conditions`指定查询条件列表, `conditions`的使用请参照 [查询条件说明](./Conditions.md "查询条件说明"), curl请求示例如下
+```shell
+curl -X POST -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{"conditions":[{"type":"sum_balanceTotal","value":""},{"type":"sum_rechargeAmoun","value":""},{"type":"sum_consumptionAmount","value":""},{"type":"sum_withdrawAmount","value":""},{"type":"deleteStatus","value":"false"}]}' \
+  http://127.0.0.1:80/api/user/sum
+```
+返回示例
+```json
+{
+    "status": 200,
+    "message": "处理成功",
+    "messageDetails": null,
+    "data": {
+        "id": null,
+        "balanceTotal": 1305052.9800,
+        "rechargeAmoun": 1339828.6600,
+        "consumptionAmount": 17029.3900,
+        "donationAmount": null,
+        "withdrawAmount": 17758.9400,
+        "transferInAmount": null,
+        "lockStatus": null
+    }
+}
+```
+<label style='color:red'>注意</label>: `SUM`接口会根据查询的合计字段创建实体对象, 所以需创建对应的构造函数
+
+### ControllerAction.REMOVE
+
+`REMOVE`接口执行物理删除操作, 接收`DELETE`协议请求, 路由为`/${ControllerRoute}/${id}`, `${ControllerRoute}`为接口类路由, `${id}`为主键值, curl请求示例如下
+```shell
+curl -X DELETE -H 'Content-Type:application/json' -H 'Authorization: Bearer xxx' \
+  -d '{}' \
+  http://127.0.0.1:80/api/user/xxx
+```
+返回示例
+```json
+{"status":200,"message":"处理成功","messageDetails":null,"data":null}
+```
+<label style='color:red'>注意</label>: `REMOVE`接口为危险操作, 如非需要请添加`@Permission(denies = "ControllerAction.REMOVE")`注解至控制器类可禁用该接口
+
+# >>>>>>
 
 ## 请求记录
 
