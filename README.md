@@ -34,3 +34,7 @@ quicker是一款基于spring boot的快速开发框架, 框架未包含业务代
 ## 分布式防重复处理
 
 [防重复处理说明](./AntiConcurrent.md "防重复处理说明")
+
+## 队列-Pulsar
+
+[Pulsar消息队列说明](./Pulsar.md "Pulsar消息队列说明")
